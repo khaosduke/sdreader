@@ -162,8 +162,8 @@ class StreamManager:
             return block 
                 
 @click.command()
-@click.option('--i', default='robot-sd.img', help='Input file or device i.e /dev/sdc')
-@click.option('--o', default='sd.json', help='Output file default sd_json.txt')
+@click.option('--i', default='robot-sd.img', help='Input file or device i.e /dev/sdc defaults to robot-sd.img')
+@click.option('--o', default='sd.json', help='Output file default sd.json')
 def main(i,o):       
     """Reads an SD card or an image file of an SD card as defined by definitions.json, outputs json""" 	                     	
     #Default input file, i, is robot-sd.img
