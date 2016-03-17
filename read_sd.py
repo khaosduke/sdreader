@@ -58,7 +58,6 @@ class DataBlock:
 	#Since iteration doesn't guarantee order in a dictionary, we have to do this the ugly way
 	names_sizes = map(self.make_tuple, data_block_prototype.json_definition()) 	
 	#Map works on list preserving our order, now we can create our new block
-	#data_array = list(bytearray(data_array))	
 	for element in names_sizes:
 		#reads in proper size
 		self.new_block[element[0]] = data_array[0:element[1]] 
@@ -67,7 +66,6 @@ class DataBlock:
 			self.new_block[element[0]] = struct.unpack('<'+types_conversion[element[0]],self.new_block[element[0]])[0]
 		#Slice array
 		data_array = data_array[element[1]:]
-	#print(int(self.new_block["signed_long"],16))
 	print(json.dumps(self.new_block))    
 
     def data(self):
@@ -157,7 +155,6 @@ class StreamManager:
 	    possible_suffix = self.stream.read(4)
 	        #unpack as 4 bytes little endian		
             val = struct.unpack('<BBBB',possible_suffix)
-            #print(hex(val[0]))
             if self.is_valid_block_suffix(possible_suffix):
                 print("Block was valid")
             else:
@@ -166,7 +163,7 @@ class StreamManager:
                 
 @click.command()
 @click.option('--i', default='robot-sd.img', help='Input file or device i.e /dev/sdc')
-@click.option('--o', default='sd.json', help='Output file default sd_json.txt')            
+@click.option('--o', default='sd.json', help='Output file default sd_json.txt')
 def main(i,o):       
     """Reads an SD card or an image file of an SD card as defined by definitions.json, outputs json""" 	                     	
     #Default input file, i, is robot-sd.img
@@ -179,9 +176,6 @@ def main(i,o):
          print(number_of_blocks)
          data_blocks.append(sm.read_in_block().data())
     print("Done")
-    #print(data_block_prototype.data().keys())
-    #print(data_block_prototype.size())
-    #pprint.pprint(json.dumps(data_blocks))
     #write to file
     with open(o, 'w') as outputfile:
 		json.dump(data_blocks,outputfile,indent=4)
