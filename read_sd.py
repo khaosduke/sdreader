@@ -8,9 +8,7 @@ import copy
 import binascii
 import click
 
-@click.command()
-@click.option('--if', default='robot-sd.img', help='Input file or device i.e /dev/sdc')
-@click.option('--of', default='sd_json.txt', help='Output file default sd_json.txt')
+
 
 
 types_conversion = {
@@ -23,6 +21,7 @@ types_conversion = {
 	"signed_short"  : "h",
 	"signed_long"   : "l"
 }
+
 
 class DataPrototype:
       	def __init__(self):
@@ -78,10 +77,7 @@ class DataBlock:
 	return (element["name"],element["size"]) 	 
 
 class StreamManager:
-    #Prefix is defined as Big-Endian, convert to Little
-    #BLOCK_PREFIX = struct.pack('<I',0xDADAFEED)
-    #BLOCK_SUFFIX = struct.pack('<I',0xCAFEBABE)
-    
+
     def __init__(self,filename):
         #Load definitions files
         with open("definitions.json") as definitions:
@@ -168,12 +164,13 @@ class StreamManager:
                 raise NameError("Block not valid")
             return block 
                 
-            
-def main():                            
-    #@click.command()
-    #@click.option('--if', default='robot-sd.img', help='Input file or device i.e /dev/sdc')
-    #@click.option('--of', default='sd_json.txt', help='Output file default sd_json.txt') 	
-    sm = StreamManager('/dev/sdc1')    
+@click.command()
+@click.option('--i', default='robot-sd.img', help='Input file or device i.e /dev/sdc')
+@click.option('--o', default='sd.json', help='Output file default sd_json.txt')            
+def main(i,o):       
+    """Reads an SD card or an image file of an SD card as defined by definitions.json, outputs json""" 	                     	
+    #Default input file, i, is robot-sd.img
+    sm = StreamManager(i)    
     sm.find_next_block()
     number_of_blocks = 0
     data_blocks = []	
@@ -186,8 +183,6 @@ def main():
     #print(data_block_prototype.size())
     #pprint.pprint(json.dumps(data_blocks))
     #write to file
-    with open('sd_json.txt', 'w') as outputfile:
+    with open(o, 'w') as outputfile:
 		json.dump(data_blocks,outputfile,indent=4)
-    #with open("sdpp.json",'w') as outputfile:
-	#pprint(json.dumps(data_blocks),stream=outputfile)
 main()    
