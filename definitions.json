@@ -1,56 +1,66 @@
 [
 	{
-		"name" : "prefix",
+		"type" : "prefix",
+		"name" : "None",
 		"value": "0xDADAFEED",
 		 "size": 4
 	},
 	{
-		"name" : "unsigned_long",
+		"type" : "unsigned_long",
+		"name" : "None",
 		"value": "",
 		"size" : 4
 	},
 	{
-		"name" : "unsigned_short",
+		"type" : "unsigned_short",
+		"name" : "None",
 		"value": "",
 		"size" : 2
 	},
 	{
-		"name" : "unsigned_byte",
+		"type" : "unsigned_byte",
+		"name" : "None",
 		"value": "",
 		"size" : 1
 	},
 	{
-		"name" : "sentence",
+		"type" : "sentence",
+		"name" : "None",
 		"value": "",
 		"size" : 84
 	},
 	{
-		"name" : "float_value",
+		"type" : "float_value",
+		"name" : "None",
 		"value": "",
 		"size" : 4
 	},
 	{
-		"name" : "double_value",
+		"type" : "double_value",
+		"name" : "None",
 		"value": "",
 		"size" : 4
 	},
 	{
-		"name" : "signed_byte",
+		"type" : "signed_byte",
+		"name" : "None",
 		"value": "",
 		"size" : 1
 	},
 	{
-		"name" : "signed_short",
+		"type" : "signed_short",
+		"name" : "None",	
 		"value": "",
 		"size" : 2
 	},
 	{
-		"name" : "signed_long",
+		"type" : "signed_long",
+		"name" : "None",
 		"value": "",
 		"size" : 4
 	},
 	{
-		"name" : "suffix",
+		"type" : "suffix",
 		"value": "0xCAFEBABE",
 		"size" : 4
 	}

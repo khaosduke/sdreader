@@ -9,8 +9,8 @@ import binascii
 import click
 
 
-
-
+#definitions_file = "definitions.json"
+definitions_file = "statevar_definitions.json"
 types_conversion = {
 	"unsigned_long" : "L",
 	"unsigned_short": "H",
@@ -25,19 +25,21 @@ types_conversion = {
 
 class DataPrototype:
       	def __init__(self):
-            with open("definitions.json") as definitions:
+            with open(definitions_file) as definitions:
                 self.json_defs = json.load(definitions)
             #Toss the prefix
             self.json_defs.pop(0)
-            #Toss the suffix
-            self.json_defs.pop(9)
+            #Toss the suffix, last element
+            self.json_defs.pop()
+
             self.dictionary_prototype = {}
 	    self.block_size = 0
             for definition in self.json_defs:
-                self.dictionary_prototype[definition["name"]] = "" 
+                self.dictionary_prototype[definition["type"]] = "" 
 	    	#Get the total block size minus the prefix and suffix
 	    	self.block_size += definition["size"]
-	
+		print(definition['name'])
+	    print(self.block_size)	
 	def json_definition(self):
 		return self.json_defs
 	
@@ -58,34 +60,38 @@ class DataBlock:
 	#Since iteration doesn't guarantee order in a dictionary, we have to do this the ugly way
 	names_sizes = map(self.make_tuple, data_block_prototype.json_definition()) 	
 	#Map works on list preserving our order, now we can create our new block
+	#print(names_sizes)	
 	for element in names_sizes:
 		#reads in proper size
 		self.new_block[element[0]] = data_array[0:element[1]] 
 		#put it in proper little endian
-		if element[0] != 'sentence':
+		if (element[0] != 'sentence') and (element[0] != 'padding'):
 			self.new_block[element[0]] = struct.unpack('<'+types_conversion[element[0]],self.new_block[element[0]])[0]
 		#Slice array
 		data_array = data_array[element[1]:]
-	print(json.dumps(self.new_block))    
+	#print(json.dumps(self.new_block))    
 
     def data(self):
 	return self.new_block
  	
     def make_tuple(self,element):
-	return (element["name"],element["size"]) 	 
+	return (element["type"],element["size"])
 
 class StreamManager:
 
     def __init__(self,filename):
         #Load definitions files
-        with open("definitions.json") as definitions:
+        with open(definitions_file) as definitions:
             json_defs = json.load(definitions)
             print(json_defs[0]["value"])
         #Load our Prefix and Suffix from the definitions, convert the string to hex then make it little endian
         StreamManager.BLOCK_PREFIX = struct.pack('<I',int(json_defs[0]["value"],0))    
-        StreamManager.BLOCK_SUFFIX = struct.pack('<I',int(json_defs[10]["value"],0))
         
-        #Opens file in RAW mode
+	#StreamManager.BLOCK_SUFFIX = struct.pack('<I',int(json_defs[10]["value"],0))
+        suffix_value = filter( lambda x: x['type']=='suffix',json_defs)[0]['value']
+	StreamManager.BLOCK_SUFFIX = struct.pack('<I',int(suffix_value,0))
+        
+	#Opens file in RAW mode
         self.stream = io.FileIO(filename,'r')
         #Verify the stream format prefix is correct by checking the first 4 bytes
         prefix = self.stream.read(4)
@@ -140,7 +146,7 @@ class StreamManager:
                     	self.stream.seek(-4,io.SEEK_CUR)
                     	return True
     		else:
-			if invalid_blocks == 1000:
+			if invalid_blocks == 10000:
 				break
 			else:
 				print(invalid_blocks)
