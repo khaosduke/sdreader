@@ -10,7 +10,7 @@ import click
 
 
 #definitions_file = "definitions.json"
-definitions_file = "statevar_definitions.json"
+definitions_file = "statevar_definitions_short.json"
 types_conversion = {
 	"unsigned_long" : "L",
 	"unsigned_short": "H",
@@ -24,31 +24,30 @@ types_conversion = {
 
 
 class DataPrototype:
-      	def __init__(self):
-            with open(definitions_file) as definitions:
-                self.json_defs = json.load(definitions)
-            #Toss the prefix
-            self.json_defs.pop(0)
-            #Toss the suffix, last element
-            self.json_defs.pop()
-
-            self.dictionary_prototype = {}
-	    self.block_size = 0
-            for definition in self.json_defs:
-                #changing from type to name
-                self.dictionary_prototype[definition["name"]] = ""
-	    	#Get the total block size minus the prefix and suffix
-	    	self.block_size += definition["size"]
-		#print(definition['name'])
-	    print("Block size is: " + str(self.block_size))
-	def json_definition(self):
+    def __init__(self):
+        with open(definitions_file) as definitions:
+            self.json_defs = json.load(definitions)
+        #Toss the prefix
+        self.json_defs.pop(0)
+        #Toss the suffix, last element
+        self.json_defs.pop()
+        self.dictionary_prototype = {}
+        self.block_size = 0
+        for definition in self.json_defs:
+            #changing from type to name
+            self.dictionary_prototype[definition["name"]] = ""
+            #Get the total block size minus the prefix and suffix
+            self.block_size += definition["size"]
+        print("Block size is: " + str(self.block_size))
+	
+    def json_definition(self):
 		return self.json_defs
-
-	def data(self):
-		return self.dictionary_prototype
-
-	def size(self):
-		return self.block_size
+    
+    def data(self):
+        return self.dictionary_prototype
+        
+    def size(self):
+        return self.block_size
 
 data_block_prototype = DataPrototype()
 
@@ -57,27 +56,25 @@ class DataBlock:
     def __init__(self,data_array):
         #Use the prototype to create new datablocks
         #copy the prototype
-	self.new_block = copy.deepcopy(data_block_prototype.data())
-	#Since iteration doesn't guarantee order in a dictionary, we have to do this the ugly way
-	names_sizes = map(self.make_tuple, data_block_prototype.json_definition())
-	#Map works on list preserving our order, now we can create our new block
-	#print(names_sizes)
-	for element in names_sizes:
-		#reads in proper size
-		self.new_block[element[2]] = data_array[0:element[1]]
-		#put it in proper little endian
-		if (element[0] != 'sentence') and (element[0] != 'padding'):
-			self.new_block[element[2]] = struct.unpack('<'+types_conversion[element[0]],self.new_block[element[2]])[0]
-		#Slice array
-		data_array = data_array[element[1]:]
-	#print(json.dumps(self.new_block))
+        self.new_block = copy.deepcopy(data_block_prototype.data())
+        #Since iteration doesn't guarantee order in a dictionary, we have to do this the ugly way
+        names_sizes = map(self.make_tuple, data_block_prototype.json_definition())
+        #Map works on list preserving our order, now we can create our new block
+        for element in names_sizes:
+            #reads in proper size
+            self.new_block[element[2]] = data_array[0:element[1]]
+            #put it in proper little endian
+            if (element[0] != 'sentence') and (element[0] != 'padding'):
+                self.new_block[element[2]] = struct.unpack('<'+types_conversion[element[0]],self.new_block[element[2]])[0]
+                #Slice array
+                data_array = data_array[element[1]:]
 
     def data(self):
-	return self.new_block
+	    return self.new_block
 
     def make_tuple(self,element):
-    #changing this name, from type and size
-	return (element["type"],element["size"],element["name"])
+        #changing this name, from type and size
+	    return (element["type"],element["size"],element["name"])
 
 class StreamManager:
 
@@ -94,12 +91,13 @@ class StreamManager:
 		#StreamManager.BLOCK_SUFFIX = struct.pack('<I',int(json_defs[10]["value"],0))
         #Get the last element -1
         #suffix_value = filter( lambda x: x['type']=='suffix',json_defs)[-1]['value']
-	StreamManager.BLOCK_SUFFIX = struct.pack('<I',int(json_defs[-1]["value"],0))
+        StreamManager.BLOCK_SUFFIX = struct.pack('<I',int(json_defs[-1]["value"],0))
         #print(int(StreamManager.BLOCK_SUFFIX,0))
 	    #Opens file in RAW mode
         self.stream = io.FileIO(filename,'r')
         #Verify the stream format prefix is correct by checking the first 4 bytes
         prefix = self.stream.read(4)
+        
         if prefix == StreamManager.BLOCK_PREFIX:
             print("OK! Block prefix correct, opening stream")
         else:
@@ -132,13 +130,13 @@ class StreamManager:
         print "Searching"
 	invalid_blocks = 0
         while True:
-	    #Count for number of invalid blocks to search, we limit to 1000
+	        #Count for number of invalid blocks to search, we limit to 1000
             #invalid_blocks = 0
-	    #Check for EOF
+	        #Check for EOF
             next_byte = self.stream.read(1)
             if len(next_byte) == 0:
                 return False
-            #print "Reading..."
+            
             if  next_byte == StreamManager.BLOCK_PREFIX[0]:
                 print("Found one")
                 #Check to see if its a proper block, go back one byte
@@ -150,12 +148,12 @@ class StreamManager:
                     	#Reset the seek pointer
                     	self.stream.seek(-4,io.SEEK_CUR)
                     	return True
-    		else:
-			if invalid_blocks == 10000:
-				break
-			else:
-				print("Invalid block found "+ str(invalid_blocks))
-				invalid_blocks +=1
+                else:
+                    if invalid_blocks == 10000:
+                        break
+                    else:
+                        print("Invalid block found "+ str(invalid_blocks))
+                        invalid_blocks +=1
 
     def read_in_block(self):
         #Verify block is valid, again
@@ -163,7 +161,7 @@ class StreamManager:
             print("Continuing...")
             #Based on the struct definitions
             block = DataBlock(self.stream.read(data_block_prototype.size()))
-	    possible_suffix = self.stream.read(4)
+            possible_suffix = self.stream.read(4)
 	        #unpack as 4 bytes little endian
             val = struct.unpack('<BBBB',possible_suffix)
             #print(int(possible_suffix))
@@ -171,6 +169,7 @@ class StreamManager:
                 print("Block was valid")
             else:
                 raise NameError("Block not valid")
+            
             return block
 
 @click.command()
