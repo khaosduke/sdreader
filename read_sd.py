@@ -10,7 +10,8 @@ import click
 
 
 #definitions_file = "definitions.json"
-definitions_file = "statevar_definitions_short.json"
+#definitions_file = "statevar_definitions_short.json"
+definitions_file = "gps_definitions.json"
 types_conversion = {
 	"unsigned_long" : "L",
 	"unsigned_short": "H",
@@ -39,13 +40,13 @@ class DataPrototype:
             #Get the total block size minus the prefix and suffix
             self.block_size += definition["size"]
         print("Block size is: " + str(self.block_size))
-	
+
     def json_definition(self):
 		return self.json_defs
-    
+
     def data(self):
         return self.dictionary_prototype
-        
+
     def size(self):
         return self.block_size
 
@@ -68,6 +69,8 @@ class DataBlock:
                 self.new_block[element[2]] = struct.unpack('<'+types_conversion[element[0]],self.new_block[element[2]])[0]
                 #Slice array
                 data_array = data_array[element[1]:]
+	    elif element[0] == 'sentence':
+		data_array = data_array[element[1]:]
 
     def data(self):
 	    return self.new_block
@@ -85,19 +88,17 @@ class StreamManager:
             print("Prefix: " + json_defs[0]["value"])
             print("Suffix: " + json_defs[-1]["value"])
         #Load our Prefix and Suffix from the definitions, convert the string to hex then make it little endian
-        StreamManager.BLOCK_PREFIX = struct.pack('<I',int(json_defs[0]["value"],0))
-
-
-		#StreamManager.BLOCK_SUFFIX = struct.pack('<I',int(json_defs[10]["value"],0))
+	StreamManager.BLOCK_PREFIX = struct.pack('<I',int(json_defs[0]["value"],0))
         #Get the last element -1
         #suffix_value = filter( lambda x: x['type']=='suffix',json_defs)[-1]['value']
-        StreamManager.BLOCK_SUFFIX = struct.pack('<I',int(json_defs[-1]["value"],0))
-        #print(int(StreamManager.BLOCK_SUFFIX,0))
+	StreamManager.BLOCK_SUFFIX = struct.pack('<I',int(json_defs[-1]["value"],0))
+
+		#print(int(StreamManager.BLOCK_SUFFIX,0))
 	    #Opens file in RAW mode
         self.stream = io.FileIO(filename,'r')
         #Verify the stream format prefix is correct by checking the first 4 bytes
         prefix = self.stream.read(4)
-        
+
         if prefix == StreamManager.BLOCK_PREFIX:
             print("OK! Block prefix correct, opening stream")
         else:
@@ -115,6 +116,17 @@ class StreamManager:
             self.stream.seek(-1,io.SEEK_CUR)
             return False
 
+    def postfix_padding(self):
+    	next_byte = self.stream.read(1)
+    	print "Checking for fucked up data"
+    	if next_byte == "aa":
+    		#Keep reading until we have a prefix
+    		print "Recursing...a lot"
+    		return self.postfix_padding()
+    	else:
+    		#Roll back our cursor, file pointer
+    		self.stream.seek(-1,io.SEEK_CUR)
+    		return
 
     def is_valid_block_prefix(self,possible_prefix):
         if possible_prefix == StreamManager.BLOCK_PREFIX:
@@ -136,7 +148,7 @@ class StreamManager:
             next_byte = self.stream.read(1)
             if len(next_byte) == 0:
                 return False
-            
+
             if  next_byte == StreamManager.BLOCK_PREFIX[0]:
                 print("Found one")
                 #Check to see if its a proper block, go back one byte
@@ -169,14 +181,19 @@ class StreamManager:
                 print("Block was valid")
             else:
                 raise NameError("Block not valid")
-            
+
+	    #Check for padding after the block
+	    self.postfix_padding()
+
             return block
 
 @click.command()
+@click.option('--d',default='definitions.json',help='Definitions file as json')
 @click.option('--i', default='robot-sd.img', help='Input file or device i.e /dev/sdc defaults to robot-sd.img')
 @click.option('--o', default='sd.json', help='Output file default sd.json')
-def main(i,o):
+def main(d,i,o):	
     """Reads an SD card or an image file of an SD card as defined by definitions.json, outputs json"""
+    definitions_file = d
     #Default input file, i, is robot-sd.img
     sm = StreamManager(i)
     #sm.find_next_block()
