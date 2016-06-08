@@ -14,7 +14,7 @@ with open("gps_sd.json") as definitions:
 status = [ element['status'] for element in json_data]
 
 #Convert to int then get the binary strings, da fuq is that list bin int, welcome to python
-binary_array = [ list(bin(int(s))[2:].zfill(5)) for s in status]
+binary_array = [ list(bin(int(s))[2:].zfill(16)) for s in status]
 print binary_array
 
 def zero_scatter(p,x,y,typestr):
@@ -26,9 +26,10 @@ p = figure(title="scatter.py")
 
 for i in range(len(binary_array)):
 	for j in range(len(binary_array[i])):
-		if binary_array[i][j] == '0':
-			zero_scatter(p,i,j,"circle")
-		else:
+	#	if binary_array[i][j] == '0':
+	#		zero_scatter(p,i,j,"circle")
+	#	else:
+                if binary_array[i][j] == '1':
 			one_scatter(p,i,j,"circle")
 
 ticks = range(0,32)
