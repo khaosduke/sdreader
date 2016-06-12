@@ -41,24 +41,24 @@ d = []
 for i in range(len(gps_lat)):
 	d.append((gps_lat[i],gps_long[i]))
 d = filter(filter_crap,d)
+#gps_deltas = deltas(d)
+#delta_lats = [ delta_p[0] for delta_p in gps_deltas]
+#delta_longs =[ delta_p[1] for delta_p in gps_deltas]
+#d_lat = np.mean(delta_lats)
+#d_long = np.mean(delta_longs)
 
-gps_deltas = deltas(d)
-delta_lats = [ delta_p[0] for delta_p in gps_deltas]
-delta_longs =[ delta_p[1] for delta_p in gps_deltas]
-d_lat = np.mean(delta_lats)
-d_long = np.mean(delta_longs)
-
-print((d_lat,d_long))
+#print((d_lat,d_long))
 
 
-#print d
+print d
 
 df = pd.DataFrame(d,columns=['lat','long'])
-xlabel = u"Latitude \u0394Lat: "+"{:.10f}".format(d_lat)
-ylabel = u"Longitude \u0394Long: "+"{:.10f}".format(d_long)
+#xlabel = u"Latitude \u0394Lat: "+"{:.10f}".format(d_lat)
+#ylabel = u"Longitude \u0394Long: "+"{:.10f}".format(d_long)
+print df
 
 p = Scatter(df, x='lat', y='long', title="GPS Lat and Long",
-            xlabel=xlabel, ylabel=ylabel)
+            xlabel='xlabel', ylabel='ylabel')
 
 # output to static HTML file
 output_file("gps_scatter.html",title="GPS Lat Long")
