@@ -5,6 +5,7 @@ from collections import OrderedDict
 from bokeh.plotting import *
 from bokeh.models import FixedTicker
 import numpy as np
+import pandas as pd
 
 from bokeh.sampledata.autompg import autompg as df
 
@@ -12,35 +13,53 @@ from bokeh.sampledata.autompg import autompg as df
 with open("gps_sd.json") as definitions:
 	json_data = json.load(definitions)
 
+
+#Filter out 0,0
+def filter_crap(pair):
+	if not(pair[0]==0 and pair[1] == 0):
+		return pair	
+
+def delta_e(p1,p2):
+	return (p1[0]-p2[0],p1[1]-p2[1])
+	
+def deltas(coord_list):
+	deltas = []
+	#remove our first element
+	p1 = coord_list.pop(0)
+	save_head = p1
+	for p2 in coord_list:
+		deltas.append(delta_e(p1,p2))
+		p1 = p2
+	d.insert(0,save_head)
+	return deltas
+
 #Pull the status
-gps_lat = [ element['gps_latitude'] for element in json_data]
-gps_long = [ element['gps_longitude'] for element in json_data]
+gps_lat = [ float(element['gps_latitude']) for element in json_data]
+gps_long = [ float(element['gps_longitude']) for element in json_data]
 
-p = figure(title="GPS")
-for i in gps_lat:
-	for j in gps_long:
-		p.scatter(i,j,marker='circle', line_color="#6666ee",fill_color="#ee6666", fill_alpha=1.0, size=8)
+d = []
+for i in range(len(gps_lat)):
+	d.append((gps_lat[i],gps_long[i]))
+d = filter(filter_crap,d)
 
-#def one_scatter(p,x,y,typestr):
-#	p.scatter(x,y,marker=typestr, line_color="#6666ee",fill_color="#ee6666", fill_alpha=1.0, size=8)
+gps_deltas = deltas(d)
+delta_lats = [ delta_p[0] for delta_p in gps_deltas]
+delta_longs =[ delta_p[1] for delta_p in gps_deltas]
+d_lat = np.mean(delta_lats)
+d_long = np.mean(delta_longs)
 
-#p = figure(title="GPS")
+print((d_lat,d_long))
 
-#for i in range(len(binary_array)):
-#	for j in range(len(binary_array[i])):
-#			one_scatter(p,i,j,"circle")
 
-#df = zip(gps_lat,gps_long)
-#df = np.vstack((gps_lat,gps_long)).T
-#print df
-#p = Scatter(df, x='mpg', y='hp', title="HP vs MPG",
-#            xlabel="Miles Per Gallon", ylabel="Horsepower")
-#ticks = range(0,32)
-#p.yaxis[0].ticker=FixedTicker(ticks=ticks)
-#p.xgrid.band_fill_alpha = 0.1
-#p.xgrid.band_fill_color = 'navy"'
-#print xyvalues
-#scatter = Scatter(xyvalues,title="scatter", legend="top_left", ylabel="iterations")
+#print d
+
+df = pd.DataFrame(d,columns=['lat','long'])
+xlabel = u"Latitude \u0394Lat: "+"{:.10f}".format(d_lat)
+ylabel = u"Longitude \u0394Long: "+"{:.10f}".format(d_long)
+
+p = Scatter(df, x='lat', y='long', title="GPS Lat and Long",
+            xlabel=xlabel, ylabel=ylabel)
+
 # output to static HTML file
 output_file("gps_scatter.html",title="GPS Lat Long")
 show(p)

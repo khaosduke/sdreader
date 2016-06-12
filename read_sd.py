@@ -11,7 +11,7 @@ import click
 
 #definitions_file = "definitions.json"
 #definitions_file = "statevar_definitions_short.json"
-definitions_file = "gps_definitions.json"
+definitions_file = "definitions/gps_definitions.json"
 types_conversion = {
 	"unsigned_long" : "L",
 	"unsigned_short": "H",
