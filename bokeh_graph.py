@@ -28,6 +28,11 @@ for element in json_data:
         pitch_deg.append(element['pitch_deg'])
         roll_deg.append(element['roll_deg'])
 
+#Remove zero function
+def remove_zeros(data):
+	if data != 0.0:
+		return data
+
 # output to static HTML file
 output_file("lines.html", title="line plot example")
 
@@ -45,9 +50,9 @@ rd = figure(title="Roll in Degrees", x_axis_label='iteration', y_axis_label='Deg
 
 # add a line renderer with legend and line thickness
 m.line(iterations, main_loop_counter, legend="Main loop", line_width=2)
-gs.line(iterations, gps_seconds, legend="GPS Seconds", line_width=2)
-gm.line(iterations, gps_minutes, legend="GPS Minutes", line_width=2)
-s.line(iterations, status, legend="Status", line_width=2)
+gs.line(iterations, filter(remove_zeros,gps_seconds), legend="GPS Seconds", line_width=2)
+gm.line(iterations, filter(remove_zeros,gps_minutes), legend="GPS Minutes", line_width=2)
+s.line(iterations, filter(remove_zeros,status), legend="Status", line_width=2)
 p.line(iterations, heading_raw, legend="Heading Raw", line_width=2)
 q.line(iterations, heading_degrees, legend="Heading degrees", line_width=2)
 r.line(iterations, pitch_deg, legend="Pitch Degrees", line_width=2)
