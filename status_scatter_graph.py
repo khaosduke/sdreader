@@ -7,14 +7,15 @@ from bokeh.models import FixedTicker
 import pandas as pd
 
 #Get data from json file
-with open("gps_sd.json") as definitions:
+with open("gps_sd_k53.json") as definitions:
 	json_data = json.load(definitions)
 
 #Pull the status
 status = [ element['status'] for element in json_data]
 
 #Convert to int then get the binary strings, da fuq is that list bin int, welcome to python
-binary_array = [ list(bin(int(s))[2:].zfill(32)) for s in status]
+#No zfill
+binary_array = [ list(bin(int(s))[2:]) for s in status]
 
 def zero_scatter(p,x,y,typestr):
 	p.scatter(x,y,marker=typestr, line_color="#6666ee",fill_color="#ee6666", fill_alpha=0.25, size=8)
@@ -33,7 +34,7 @@ df = pd.DataFrame(d)
 
 p = Scatter(df,x='x',y='y',color='bit',palette=['#ee6666','blue'],title="Status Scatter Plot")
 
-#ticks = range(0,32)
+ticks = range(0,16)
 #p.yaxis[0].ticker=FixedTicker(ticks=ticks)
 #p.xgrid.band_fill_alpha = 0.1
 #p.xgrid.band_fill_color = 'navy"'

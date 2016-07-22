@@ -12,7 +12,8 @@ import click
 #definitions_file = "definitions.json"
 #definitions_file = "statevar_definitions_short.json"
 #definitions_file = "definitions/gps_definitions.json"
-definitions_file = "definitions/gps_cmp_definitions.json"
+#definitions_file = "definitions/gps_cmp_definitions.json"
+definitions_file = "definitions/gps_odo_definitions.json"
 types_conversion = {
 	"unsigned_long" : "L",
 	"unsigned_short": "H",
@@ -23,6 +24,8 @@ types_conversion = {
 	"signed_short"  : "h",
 	"signed_long"   : "l"
 }
+
+
 
 
 class DataPrototype:
@@ -76,9 +79,11 @@ class DataBlock:
     def data(self,strip_padding=True):
 	if strip_padding:
             save = dict(self.new_block)
-            del save['None']
-            return save
-        else: 
+	    if 'None' in save:
+		del save['None']
+            
+	    return save
+        else:
             return self.new_block
 
     def make_tuple(self,element):
@@ -198,7 +203,7 @@ class StreamManager:
 @click.option('--i', default='robot-sd.img', help='Input file or device i.e /dev/sdc defaults to robot-sd.img')
 @click.option('--o', default='sd.json', help='Output file default sd.json')
 @click.option('--ensureascii',default='False', help="For Debugging, JSON serializer set to ensure ascii true or false")
-def main(d,i,o,ensureascii):	
+def main(d,i,o,ensureascii):
     """Reads an SD card or an image file of an SD card as defined by definitions.json, outputs json"""
     definitions_file = d
     #Default input file, i, is robot-sd.img

@@ -10,7 +10,7 @@ import pandas as pd
 from bokeh.sampledata.autompg import autompg as df
 
 #Get data from json file
-with open("gps_sd.json") as definitions:
+with open("gps_k61.json") as definitions:
 	json_data = json.load(definitions)
 
 
@@ -56,5 +56,5 @@ p = Scatter(df, x='lat', y='long', title="GPS Lat and Long",
             xlabel=xlabel, ylabel=ylabel)
 
 # output to static HTML file
-output_file("gps_scatter.html",title="GPS Lat Long")
+output_file(definitions.name.split(".")[0]+"_gps_scatter.html",title="GPS Lat Long")
 show(p)
